@@ -570,6 +570,7 @@ RunICA.Assay <- function(
 ) {
   data.use <- PrepDR(
     object = object,
+    assay = assay,
     features = features,
     verbose = verbose
   )
@@ -886,6 +887,7 @@ RunPCA.Assay <- function(
 ) {
   data.use <- PrepDR(
     object = object,
+    assay = assay,
     features = features,
     verbose = verbose
   )
@@ -1933,6 +1935,7 @@ L2Norm <- function(vec) {
 # reduction techniques
 #
 # @param object        Assay object
+# @param assay     Assay used to be prepared.
 # @param features  Features to use as input for the dimensional reduction technique.
 #                      Default is variable features
 # @ param verbose   Print messages and warnings
@@ -1940,17 +1943,18 @@ L2Norm <- function(vec) {
 #
 PrepDR <- function(
   object,
+  assay = NULL,
   features = NULL,
   verbose = TRUE
 ) {
-  if (length(x = VariableFeatures(object = object)) == 0 && is.null(x = features)) {
+  if (length(x = VariableFeatures(object = object, assay = assay)) == 0 && is.null(x = features)) {
     stop("Variable features haven't been set. Run FindVariableFeatures() or provide a vector of feature names.")
   }
-  data.use <- GetAssayData(object = object, slot = "scale.data")
+  data.use <- GetAssayData(object = object, assay = assay, slot = "scale.data")
   if (nrow(x = data.use ) == 0) {
     stop("Data has not been scaled. Please run ScaleData and retry")
   }
-  features <- features %||% VariableFeatures(object = object)
+  features <- features %||% VariableFeatures(object = object, assay = assay)
   features.keep <- unique(x = features[features %in% rownames(x = data.use)])
   if (length(x = features.keep) < length(x = features)) {
     features.exclude <- setdiff(x = features, y = features.keep)

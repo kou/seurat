@@ -58,3 +58,77 @@ test_that("pca returns total variance (see #982)", {
                     sum(prcomp_result$sdev^2))
 
 })
+
+test_that("pca with specific assay", {
+  # Generate dummy data exp matrix
+  set.seed(seed = 1)
+  dummyexpMat <- matrix(
+    data = sample(x = c(1:50), size = 1e4, replace = TRUE),
+    ncol = 100, nrow = 100
+  )
+  colnames(x = dummyexpMat) <- paste0("cell", seq(ncol(x = dummyexpMat)))
+  row.names(x = dummyexpMat) <- paste0("gene", seq(nrow(x = dummyexpMat)))
+
+  # Create Seurat object for testing
+  obj <- CreateSeuratObject(counts = dummyexpMat)
+  obj[["RNA2"]] <- CreateAssayObject(counts = dummyexpMat)
+
+  # Scale, find features and compute PCA for the specified assay
+  obj <- ScaleData(object = obj, assay = "RNA2", verbose = FALSE)
+  obj <- FindVariableFeatures(object = obj, assay = "RNA2", verbose = FALSE)
+  pca_result <- suppressWarnings(expr = RunPCA(
+    object = obj,
+    assay = "RNA2",
+    reduction.name = "pca2",
+    verbose = FALSE
+  ))
+
+  # Scale, find features and compute PCA for the default assay
+  obj <- ScaleData(object = obj, verbose = FALSE)
+  obj <- FindVariableFeatures(object = obj, verbose = FALSE)
+  pca_result <- suppressWarnings(expr = RunPCA(
+    object = obj,
+    verbose = FALSE
+  ))
+
+  # Compare
+  expect_equivalent(obj[["pca"]]@stdev,
+                    obj[["pca2"]]@stdev)
+})
+
+test_that("ica with specific assay", {
+  # Generate dummy data exp matrix
+  set.seed(seed = 1)
+  dummyexpMat <- matrix(
+    data = sample(x = c(1:50), size = 1e4, replace = TRUE),
+    ncol = 100, nrow = 100
+  )
+  colnames(x = dummyexpMat) <- paste0("cell", seq(ncol(x = dummyexpMat)))
+  row.names(x = dummyexpMat) <- paste0("gene", seq(nrow(x = dummyexpMat)))
+
+  # Create Seurat object for testing
+  obj <- CreateSeuratObject(counts = dummyexpMat)
+  obj[["RNA2"]] <- CreateAssayObject(counts = dummyexpMat)
+
+  # Scale, find features and compute ICA for the specified assay
+  obj <- ScaleData(object = obj, assay = "RNA2", verbose = FALSE)
+  obj <- FindVariableFeatures(object = obj, assay = "RNA2", verbose = FALSE)
+  pca_result <- suppressWarnings(expr = RunICA(
+    object = obj,
+    assay = "RNA2",
+    reduction.name = "ica2",
+    verbose = FALSE
+  ))
+
+  # Scale, find features and compute ICA for the default assay
+  obj <- ScaleData(object = obj, verbose = FALSE)
+  obj <- FindVariableFeatures(object = obj, verbose = FALSE)
+  pca_result <- suppressWarnings(expr = RunICA(
+    object = obj,
+    verbose = FALSE
+  ))
+
+  # Compare
+  expect_equivalent(obj[["ica"]]@stdev,
+                    obj[["ica2"]]@stdev)
+})
